@@ -25,8 +25,12 @@ public class RestyTest {
 	}
 	@Test
 	public void sampleUse() throws Exception {
-		Resty r = new Resty();
-		assertEquals(r.json(getClass().getResource("test.json").toString()).json(path("key.subkey")).object().getInt("secret"), 42);
+        Resty r = new Resty();
+        int result = r.json(getClass().getResource("test.json").toString()).object()
+                .getAsJsonObject("key")
+                .getAsJsonObject("subkey")
+                .getAsJsonPrimitive("secret").getAsInt();
+        assertEquals(result, 42);
 	}
 
 //	@Test

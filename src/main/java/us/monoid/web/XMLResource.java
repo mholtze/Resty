@@ -11,8 +11,6 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import us.monoid.json.JSONException;
-
 
 
 /** Resource presentation for an XML document. 
@@ -56,31 +54,6 @@ public class XMLResource extends TextResource {
 			inputStream.close();
 		}
 		return document;
-	}
-	
-	/** Execute the given path query on the XML, GET the returned URI expecting JSON as content
-	 * 
-	 * @param path path to the URI to follow, must be a String QName result
-	 * @return a new resource, as a result of getting it from the server in JSON format
-	 * @throws Exception 
-	 * @throws JSONException 
-	 */
-	public JSONResource json(XPathQuery path) throws Exception {
-		String uri = path.eval(this, String.class);
-		return json(uri);
-	}
-	
-	/** Execute the given path query on the XML, POST the returned URI expecting JSON
-	 * 
-	 * @param path path to the URI to follow, must be a String QName result
-	 * @param aContent the content to POST 
-	 * @return a new resource, as a result of getting it from the server in JSON format
-	 * @throws Exception 
-	 * @throws JSONException 
-	 */
-	public JSONResource json(XPathQuery path, Content aContent) throws Exception {
-		String uri = path.eval(this, String.class);
-		return json(uri, aContent);
 	}
 
 	/** Execute the given path query on the XML, GET the returned URI expecting text/* as content

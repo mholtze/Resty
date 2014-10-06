@@ -6,8 +6,7 @@ import static us.monoid.web.Resty.*;
 import java.io.IOException;
 import java.net.URI;
 
-import us.monoid.json.JSONException;
-import us.monoid.json.JSONObject;
+import com.google.gson.JsonObject;
 import us.monoid.web.Resty;
 
 import org.junit.AfterClass;
@@ -21,10 +20,9 @@ public class RestyMimeTest {
 	/** Test talking to the multipart test resource. It returns a list of the mime parts found with their disposition and mime-type
 	 * 
 	 * @throws IOException
-	 * @throws JSONException
 	 */
 	@Test
-	public void createMultiformTest() throws IOException, JSONException {
+	public void createMultiformTest() throws IOException {
 		Resty r = new Resty();
 		//TextResource text = r.text("http://www.cs.tut.fi/cgi-bin/run/~jkorpela/echoraw.cgi", 
 		TextResource text = r.text("http://localhost:9998/mime/multipart", 
@@ -32,8 +30,8 @@ public class RestyMimeTest {
 		String result = text.toString();
 		System.out.println(result);
 		assertTrue(result.contains("bubu"));
-		JSONObject json = new JSONObject();
-		json.put("bubu", "lala");
+		JsonObject json = new JsonObject();
+		json.addProperty("bubu", "lala");
 		text = r.text("http://localhost:9998/mime/multipart", form(data("someJson", content(json)), data("someText", "Text")));
 		result = text.toString();
 		System.out.println(result);

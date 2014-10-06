@@ -17,7 +17,9 @@ import java.util.Map;
 import javax.net.ssl.HttpsURLConnection;
 import javax.xml.xpath.XPathException;
 
-import us.monoid.json.JSONObject;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+
 import us.monoid.web.auth.RestyAuthenticator;
 import us.monoid.web.mime.MultipartContent;
 import us.monoid.web.ssl.AllowAllHostnameVerifier;
@@ -78,7 +80,9 @@ import us.monoid.web.ssl.TrustAllX509SocketFactory;
 public class Resty {
 
 	protected static String MOZILLA = "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.6; en-US; rv:1.9.2.13) Gecko/20101203 Firefox/3.6.13";
-	protected static String DEFAULT_USER_AGENT = "Resty/0.1 (Java)";
+	public static String DEFAULT_USER_AGENT = "Resty/0.1 (Java)";
+    public static Gson DEFAULT_GSON = new Gson();
+
 	static RestyAuthenticator rath = new RestyAuthenticator();
 	static {
 		try {
@@ -90,6 +94,7 @@ public class Resty {
 		}
 		Authenticator.setDefault(rath);
 	}
+
 
 	protected String userAgent = DEFAULT_USER_AGENT;
 	private java.net.Proxy proxy = java.net.Proxy.NO_PROXY;
@@ -183,7 +188,7 @@ public class Resty {
 	 *          - the string to use as URI
 	 * @see Resty#json(URI) for more docs
 	 */
-	public JSONResource json(String string) throws IOException {
+	public JsonResource json(String string) throws IOException {
 		return json(URI.create(string));
 	}
 
@@ -195,12 +200,12 @@ public class Resty {
 	 * @return the JSONObject, wrapped in a neat JSONResource
 	 * @throws IOException
 	 */
-	public JSONResource json(URI anUri) throws IOException {
+	public JsonResource json(URI anUri) throws IOException {
 		return doGET(anUri, createJSONResource());
 	}
 
-	protected JSONResource createJSONResource() {
-		return new JSONResource(options);
+	protected JsonResource createJSONResource() {
+		return new JsonResource(options);
 	}
 
 	/**
@@ -214,12 +219,12 @@ public class Resty {
 	 * @throws IOException
 	 *           if uri is wrong or no connection could be made or for 10 zillion other reasons
 	 */
-	public JSONResource json(URI anUri, AbstractContent requestContent) throws IOException {
+	public JsonResource json(URI anUri, AbstractContent requestContent) throws IOException {
 		return doPOSTOrPUT(anUri, requestContent, createJSONResource());
 	}
 
 	/** @see Resty#json(URI, Content) */
-	public JSONResource json(String anUri, AbstractContent content) throws IOException {
+	public JsonResource json(String anUri, AbstractContent content) throws IOException {
 		return json(URI.create(anUri), content);
 	}
 
@@ -430,21 +435,6 @@ public class Resty {
 	}
 
 	/**
-	 * Create a JSONPathQuery to extract data from a JSON object. This is usually used to extract a URI and use it in json|text|xml(JSONPathQuery...) methods of JSONResource.
-	 * <code>
-	 * Resty r = new Resty();
-	 * r.json(someUrl).json(path("path.to.url.in.json"));
-	 *
-	 * </code>
-	 *
-	 * @param string
-	 * @return
-	 */
-	public static JSONPathQuery path(String string) {
-		return new JSONPathQuery(string);
-	}
-
-	/**
 	 * Create an XPathQuery to extract data from an XML document. This is usually used to extract a URI and use it in json|text|xml(XPathQuery...) methods. In this case, your XPath must result in a
 	 * String value, i.e. it can't just extract an Element.
 	 *
@@ -464,14 +454,54 @@ public class Resty {
 	 *          the JSON to use
 	 * @return the content to send
 	 */
-	public static Content content(JSONObject someJson) {
+	public static Content content(JsonElement someJson) {
 		Content c = null;
 		try {
-			c = new Content("application/json; charset=UTF-8", someJson.toString().getBytes("UTF-8"));
+            String json = DEFAULT_GSON.toJson(someJson);
+			c = new Content("application/json; charset=UTF-8", json.getBytes("UTF-8"));
 		} catch (UnsupportedEncodingException e) { /* UTF-8 is never unsupported */
 		}
 		return c;
 	}
+
+    /**
+     * Create a content object from JSON. Use this to POST the content to a URL.
+     *
+     * @param gson
+     *          GSON serializer to use.
+     * @param someJson
+     *          Object to serialize to JSON.
+     * @return the content to send
+     */
+    public static Content content(Gson gson, Object obj) {
+        Content c = null;
+        if (gson == null)
+            gson = DEFAULT_GSON;
+
+        try {
+            String json = gson.toJson(obj);
+            c = new Content("application/json; charset=UTF-8", json.getBytes("UTF-8"));
+        } catch (UnsupportedEncodingException e) { /* UTF-8 is never unsupported */
+        }
+        return c;
+    }
+
+    /**
+     * Create a content object from JSON. Use this to POST the content to a URL.
+     *
+     * @param someJson
+     *          Object to serialize to JSON.
+     * @return the content to send
+     */
+    public static Content jsonContent(Object obj) {
+        Content c = null;
+        try {
+            String json = DEFAULT_GSON.toJson(obj);
+            c = new Content("application/json; charset=UTF-8", json.getBytes("UTF-8"));
+        } catch (UnsupportedEncodingException e) { /* UTF-8 is never unsupported */
+        }
+        return c;
+    }
 
 	/**
 	 * Create a content object from plain text. Use this to POST the content to a URL.
