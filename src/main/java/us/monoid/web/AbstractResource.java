@@ -68,10 +68,6 @@ public abstract class AbstractResource extends Resty {
 		return urlConnection;
 	}
 
-	public HttpURLConnection http() {
-		return (HttpURLConnection) urlConnection;
-	}
-
 	public InputStream stream() {
 		return inputStream;
 	}
@@ -100,7 +96,7 @@ public abstract class AbstractResource extends Resty {
 	 * 
 	 */
 	public URI location() {
-		String loc = http().getHeaderField("Location");
+		String loc = getUrlConnection().getHeaderField("Location");
 		if (loc != null) {
 			return URI.create(loc);
 		}
@@ -113,9 +109,9 @@ public abstract class AbstractResource extends Resty {
 	 */
 	public String printResponseHeaders() {
 		StringBuilder sb = new StringBuilder();
-		HttpURLConnection http = http();
-		if (http != null) {
-			Map<String, List<String>> header = http.getHeaderFields();
+		URLConnection conn = getUrlConnection();
+		if (conn != null) {
+			Map<String, List<String>> header = conn.getHeaderFields();
 			for (String key : header.keySet()) {
 				for (String val : header.get(key)) {
 					sb.append(key).append(": ").append(val).append("\n");
